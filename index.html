@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario IAG</title>
+    <meta name="description" content="Cuestionario de evaluación de uso de IA">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
+    <!-- CONFIGURACIÓN DE PREGUNTAS Y DESTINO (Accesible directamente en el HTML) -->
+    <script id="data-config">
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyEHkHqQXj2ncDe3EvDIqU9y-rNqd9siaqhq3yutZ-xh8bVSYqcehgmomIgz-MqiMRM/exec";
+
+        const DEFAULT_QUESTIONS = [
+            { id: "q_item15", category: "Me considero capaz de desempeñar tareas relacionadas con la IAG." },
+            { id: "q_item16", category: "Me veo capaz de ejecutar con éxito proyectos relacionados con la IAG." },
+            { id: "q_item17", category: "Me percibo capaz de dominar los conocimientos y habilidades relacionados con la IAG." },
+            { id: "q_item18", category: "Me considero capaz de obtener buenos resultados en evaluaciones relacionadas con la IAG." },
+            { id: "q_item19", category: "Cuando uso IAG, establezco criterios de calidad para mis tareas de aprendizaje." },
+            { id: "q_item20", category: "Cuando uso IAG, mantengo un alto nivel de exigencia en mi aprendizaje." },
+            { id: "q_item21", category: "Cuando uso IAG, fijo metas que me ayudan a gestionar el tiempo de estudio." },
+            { id: "q_item22", category: "Replanteo la pregunta a la IAG cuando no responde adecuadamente a la inicial." },
+            { id: "q_item23", category: "Ajusto el contenido generado por la IAG cuando no resulta satisfactorio." },
+            { id: "q_item24", category: "Adapto el momento y la forma de uso de la IAG según la dificultad del contenido." },
+            { id: "q_item25", category: "Reviso el diálogo con la IAG y reflexiono sobre la calidad de la interacción." },
+            { id: "q_item26", category: "Cuando uso IAG, reflexiono sobre lo que hice bien y lo que no durante el proceso de aprendizaje." },
+            { id: "q_item27", category: "Cuando uso IAG, reflexiono sobre mis conductas de aprendizaje para ver si podría haber hecho algo mejor." },
+            { id: "q_item28", category: "Repaso lo que he aprendido con la IAG y lo reevalúo." },
+            { id: "q_item29", category: "Selecciono la estrategia de prompt para interactuar con la IAG según mi propio criterio." },
+            { id: "q_item30", category: "Decido qué preguntas formular a la IAG según mi criterio." },
+            { id: "q_item31", category: "Determino cuándo interactuar con la IAG según mi criterio." },
+            { id: "q_item32", category: "Cuando uso IAG, elijo la forma de completar las tareas de aprendizaje según mi criterio." },
+            { id: "q_item33", category: "Evito el uso indebido de la IAG ." },
+            { id: "q_item34", category: "Asumo activamente la responsabilidad de mi aprendizaje y no dejo que la IAG reemplace mi esfuerzo." },
+            { id: "q_item35", category: "Soy cuidadoso/a con temas de seguridad y privacidad de la información cuando uso la IAG." },
+            { id: "q_item36", category: "Cuando uso IAG, estoy atento ante cuestiones éticas como sesgos raciales y discriminación de género." },
+            { id: "q_item37", category: "Introduzco prompts detallados en herramientas de IAG para acceder al contenido que necesito." },
+            { id: "q_item38", category: "Mejoro prompts que utilizo en herramientas de IAG para alcanzar el contenido que necesito." },
+            { id: "q_item39", category: "Detecto deficiencias en mis prompts a partir del contenido generado por la IAG." },
+            { id: "q_item40", category: "Creo prompts que hacen que el contenido generado por la IAG sea más significativo." },
+            { id: "q_item41", category: "Adapto prompts a distintas herramientas de IAG para obtener el contenido que necesito." },
+            { id: "q_item42", category: "Evalúo los riesgos importantes que puede suponer para las personas el uso indebido de la IAG." },
+            { id: "q_item43", category: "Someto los sistemas de IAG a pruebas rigurosas para garantizar su correcto funcionamiento." },
+            { id: "q_item44", category: "Asumo la responsabilidad de considerar el diseño y los procesos de decisión de la IAG en su uso." },
+            { id: "q_item45", category: "Garantizo que los sistemas de IAG beneficien a todas las personas, independientemente de sus condiciones físicas o de género." },
+            { id: "q_item46", category: "Solicito responsabilidad y transparencia a los otros cuando usan IAG." },
+            { id: "q_item47", category: "Verifico que los sistemas de IAG cumplen los estándares éticos y legales." },
+            { id: "q_item48", category: "Aplico la IAG para apoyar a personas desfavorecidas." },
+            { id: "q_item49", category: "Cuestiono el contenido generado por la IAG." },
+            { id: "q_item50", category: "Analizo la precisión del contenido presentado por la IAG." },
+            { id: "q_item51", category: "Entiendo que hay sesgos en el contenido generdao por IAG." },
+            { id: "q_item52", category: "Contrasto el contenido presentado por la IAG con otras fuentes para evaluar su exactitud." },
+            { id: "q_item53", category: "Evalúo la objetividad del contenido presentado por la IAG mediante la consulta de otras fuentes." },
+            { id: "q_item54", category: "Distingo si el contenido presentado por la IAG corresponde a conocimiento científico o a una opinión subjetiva." },
+            { id: "q_item55", category: "Verifico la precisión del contenido generado por la IAG antes de utilizarlo." },
+            { id: "q_item56_dup", category: "Tener limitado el número de prompts a emplear, hizo que diseñara los prompts de forma más reflexiva y precisa." },
+            { id: "q_item57_dup", category: "Emplear prompts siguiendo un modelo, como el CRAFT, mejoró la interacción con la IAG." },
+            { id: "q_item58_dup", category: "Tener limitado el número de fuentes bibliográficas en los trabajos, me obligo a seleccionar la información a emplear en el trabajo." },
+            { id: "q_item59_dup", category: "La declaración de uso me ayudó a ser más consciente de cómo utilizar mejor las herramientas de IAG." },
+            { id: "q_item60_dup", category: "He aprendido a diseñar prompts más claros y específicos, usando roles, contextos y formatos claros." },
+            { id: "q_item61_dup", category: "He aprendido a pedir formatos de salida útiles, como tablas, listas, resúmenes, etc." },
+            { id: "q_item62_dup", category: "He aprendido a reconocer cuándo la respuesta de la IAG contiene fuentes inexistentes o información incorrecta o inventada." },
+            { id: "q_item63_dup", category: "He aprendido a utilizar adecuadamente las opciones de configuración y personalización de las herramientas de IAG." },
+            { id: "q_item64_dup", category: "He aprendido a seleccionar la herramienta de IAG que considero más adecuada para cada tarea específica." },
+            { id: "q_item65_1_dup", groupHeader: "Tras haber comprobado las fuentes que he empleado en los trabajos y su factualidad, he aprendido:", displayCategory: "que la IAG comete errores.", category: "Tras haber comprobado las fuentes que he empleado en los trabajos y su factualidad, he aprendido: que la IAG comete errores." },
+            { id: "q_item65_2_dup", displayCategory: "a dudar de las respuestas de la IAG.", category: "Tras haber comprobado las fuentes que he empleado en los trabajos y su factualidad, he aprendido: a dudar de las respuestas de la IAG." },
+            { id: "q_item65_3_dup", displayCategory: "a ser más crítico con lo que responde la IAG.", category: "Tras haber comprobado las fuentes que he empleado en los trabajos y su factualidad, he aprendido: a ser más crítico con lo que responde la IAG." },
+            { id: "q_item66_dup", category: "A partir de ahora, seré más crítico con las respuestas que genera la IAG." },
+            { id: "q_item67_dup", category: "A partir de ahora, ajustaré mis prompts cuando la respuesta no sea útil." },
+            { id: "q_item68_dup", category: "A partir de ahora, seré más transparente en el uso de la IAG en los trabajos o tareas que realice." },
+            { id: "q_item69_dup", category: "Considero que mi rendimiento académico ha mejorado gracias al uso responsable de la IAG." },
+            { 
+                id: "q_item70_dup", 
+                type: "single-choice",
+                category: "Imagina que la IAG te entrega un texto perfecto, pero cita una fuente que no encuentras en ninguna parte para consultarla. ¿Qué harías?",
+                options: [
+                    "Eliminaría el contenido de esa fuente en mi trabajo y no incluiría la fuente.",
+                    "Lo mantendría en mi trabajo, porque confío en que la IAG tiene acceso a dicha fuente."
+                ]
+            },
+        ];
+    </script>
+
+</head>
+
+<body>
+    <div id="app">
+        <!-- Main Navigation / Header -->
+        <header class="app-header">
+            <div class="container">
+                <div class="logo">
+                    <i data-lucide="layers" class="icon-logo"></i>
+                    <span>Cuestionario IAG </span>
+                </div>
+                <div class="header-actions">
+                    <div class="status-indicator">
+                        <span id="save-status">
+                            <i data-lucide="check-circle" class="icon-small"></i> Guardado automáticamente
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container">
+            <!-- Cuestionario Principal -->
+            <section id="questionnaire" class="questionnaire-section fade-in">
+                <div class="survey-intro">
+                    <h1>CUESTIONARIO SOBRE EL USO DE LA INTELIGENCIA ARTIFICIAL GENERATIVA</h1>
+                </div>
+
+                <form id="matrix-form" novalidate>
+                    <div id="section-2" class="fade-in">
+                        <div class="section-disclaimer"
+                            style="text-align: center; margin-bottom: 1.5rem; padding: 1rem; background: #eef2f7; border-radius: 12px; border: 1px solid #d1d9e6; color: var(--text-secondary); font-size: 0.95rem; font-weight: 500;">
+                            <i data-lucide="info"
+                                style="width: 18px; height: 18px; vertical-align: middle; margin-right: 8px; color: var(--accent);"></i>
+                            <strong>IAG SIGNIFICA INTELIGENCIA ARTIFICIAL GENERATIVA</strong>
+                        </div>
+
+                        <div class="section-header-instructions"
+                            style="margin-bottom: 2.5rem; text-align: justify; padding: 0 1rem; font-size: 1.15rem; color: var(--text-primary); line-height: 1.6; font-weight: 400;">
+                            <p>A continuación, encontrarás una serie de afirmaciones. Indica el grado de acuerdo o
+                                desacuerdo con las siguientes afirmaciones, considerando que:</p>
+
+                            <ul>
+                                <strong>1</strong> = “Totalmente en desacuerdo”.
+                            </ul>
+                            <ul>
+                                <strong>5</strong> = “Totalmente de acuerdo”.
+                            </ul>
+                        </div>
+
+                        <div class="mobile-sticky-block">
+                            <div class="sticky-reminder">
+                                Recuerda que 1 es “Totalmente en desacuerdo” y 5 es “Totalmente de acuerdo”.
+                            </div>
+
+                            <div class="matrix-header-sticky">
+                                <div class="col-category">PREGUNTA</div>
+                                <div class="col-past">DESPUÉS DE REALIZAR LOS TRABAJOS DE LA ASIGNATURA</div>
+                                <div class="col-now">QUÉ HUBIERAS PUESTO EN EL CUESTIONARIO DE PRINCIPIO DE CURSO (NO HABÍA NORMAS PARA HACER LOS TRABAJOS)</div>
+                            </div>
+                        </div>
+
+                        <!-- ESTE CONTENEDOR ES DONDE SE RENDERIZAN LAS PREGUNTAS -->
+                        <div id="questions-container">
+                            <!-- Las filas de preguntas se generan dinámicamente o se definen aquí -->
+                            <!-- Para mayor robustez, las definimos estáticamente sincronizadas con DEFAULT_QUESTIONS -->
+
+                            <script>
+                                // Función auxiliar para generar el HTML de una fila de Likert con doble columna
+                                function generateLikertRow(id, title) {
+                                    let html = `
+                                <div class="question-row" data-id="${id}">
+                                    <div class="question-text">
+                                        <span class="category-title">${title}</span>
+                                    </div>
+                                    <div class="side-past">
+                                        <div class="likert-group">`;
+                                    for (let i = 1; i <= 5; i++) {
+                                        html += `
+                                            <label class="likert-option">
+                                                <input type="radio" name="past_${id}" value="${i}" onchange="saveResponse('past_${id}', ${i})">
+                                                <div class="likert-circle"></div><span class="likert-label">${i}</span>
+                                            </label>`;
+                                    }
+                                    html += `</div></div><div class="side-now"><div class="likert-group">`;
+                                    for (let i = 1; i <= 5; i++) {
+                                        html += `
+                                            <label class="likert-option">
+                                                <input type="radio" name="now_${id}" value="${i}" onchange="saveResponse('now_${id}', ${i})">
+                                                <div class="likert-circle"></div><span class="likert-label">${i}</span>
+                                            </label>`;
+                                    }
+                                    html += `</div></div></div>`;
+                                    return html;
+                                }
+
+                                // Escribimos las preguntas (Parte 1)
+                                const questionsPart1 = DEFAULT_QUESTIONS.slice(0, 22);
+                                document.write(
+                                    questionsPart1.map(q => generateLikertRow(q.id, q.category)).join('')
+                                );
+                            </script>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary btn-xl" onclick="validateSection2AndNext()">
+                                <span>Siguiente</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div> <!-- Fin Section 2 -->
+
+                    <!-- SECCIÓN 3: PREGUNTAS 37-55 -->
+                    <div id="section-3" class="hidden fade-in">
+
+                        <div class="mobile-sticky-block">
+                            <div class="sticky-reminder">
+                                Recuerda que 1 es “Totalmente en desacuerdo” y 5 es “Totalmente de acuerdo”.
+                            </div>
+
+                            <div class="matrix-header-sticky">
+                                <div class="col-category">PREGUNTA</div>
+                                <div class="col-past">DESPUÉS DE REALIZAR LOS TRABAJOS DE LA ASIGNATURA</div>
+                                <div class="col-now">QUÉ HUBIERAS PUESTO EN EL CUESTIONARIO DE PRINCIPIO DE CURSO (NO HABÍA NORMAS PARA HACER LOS TRABAJOS)</div>
+                            </div>
+                        </div>
+
+                        <div id="questions-container-part2">
+                            <script>
+                                // Escribimos las preguntas 37-55
+                                const questionsPart2 = DEFAULT_QUESTIONS.slice(22, 41);
+                                document.write(
+                                    questionsPart2.map(q => generateLikertRow(q.id, q.category)).join('')
+                                );
+                            </script>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary btn-xl" onclick="goToSection2()">
+                                <i data-lucide="arrow-left"></i> <span>Volver</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-xl" onclick="validateSection3AndNext()">
+                                <span>Siguiente</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div> <!-- Fin Section 3 -->
+
+                    <!-- SECCIÓN DISCLAIMER INTERMEDIO -->
+                    <div id="section-disclaimer-intermedio" class="hidden fade-in user-info-section">
+                        <div class="section-disclaimer"
+                            style="text-align: center; margin: 2rem auto 4rem; padding: 3.5rem 2.5rem; background: linear-gradient(135deg, #ffffff 0%, #f4f7fb 100%); border-radius: 24px; border: 1px solid rgba(72, 136, 247, 0.15); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(72, 136, 247, 0.05); color: #1e293b; font-size: 1.4rem; font-weight: 600; line-height: 1.6; max-width: 850px; position: relative;">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;">
+                                <p class="disclaimer-text-black" style="margin: 0; color: #000000;">CON LAS SIGUIENTES PREGUNTAS QUEREMOS QUE VALORES TU EXPERIENCIA A LO LARGO DE TODO EL CURSO ACADÉMICO.</p>
+                                <p class="disclaimer-text-accent" style="margin: 0; color: var(--accent); font-weight: 800;">NUESTRO OBJETIVO ES QUE REFLEXIONES SOBRE TUS CAPACIDADES EN EL USO DE LA IAG.</p>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary btn-xl" onclick="goToSection3()">
+                                <i data-lucide="arrow-left"></i> <span>Volver</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-xl" onclick="validateDisclaimerAndNext()">
+                                <span>Siguiente</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div> <!-- Fin Section Disclaimer -->
+
+                    <!-- SECCIÓN 3 DUPLICADA -->
+                    <div id="section-3-duplicada" class="hidden fade-in">
+                        <div class="mobile-sticky-block">
+                            <div class="sticky-reminder">
+                                Recuerda que 1 es “Totalmente en desacuerdo” y 5 es “Totalmente de acuerdo”.
+                            </div>
+
+                            <div class="matrix-header-sticky matrix-header-sticky-single">
+                                <div class="col-category">PREGUNTA</div>
+                                <div class="col-past">DESPUÉS DE REALIZAR LOS TRABAJOS DE LA ASIGNATURA</div>
+                            </div>
+                        </div>
+
+                        <div id="questions-container-part2-duplicada">
+                            <!-- Las filas se renderizan mediante app.js -->
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary btn-xl" onclick="goToDisclaimer()">
+                                <i data-lucide="arrow-left"></i> <span>Volver</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-xl" onclick="validateSection3DuplicadaAndNext()">
+                                <span>Siguiente</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div> <!-- Fin Section 3 Duplicada -->
+
+                    <div id="section-4" class="hidden fade-in user-info-section">
+
+                        <div class="section-disclaimer"
+                            style="text-align: center; margin-bottom: 1.5rem; padding: 1rem; background: #eef2f7; border-radius: 12px; border: 1px solid #d1d9e6; color: var(--text-secondary); font-size: 1.2rem; font-weight: 500;">
+                            Como se comentó, vamos a hacer una investigación pre-post. Este es el último cuestionario para este estudio y, para cruzar vuestro aprendizaje,
+                            necesitamos vuestros apellidos.
+                        </div>
+
+                        <!-- Tarjeta 1: Apellidos (Movida de S1) -->
+                        <div class="info-card">
+                            <div class="form-group">
+                                <label for="user-surname">Apellidos</label>
+                                <input type="text" id="user-surname" placeholder="Escribe tus apellidos..." required>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary btn-xl" onclick="goToSection3Duplicada()">
+                                <i data-lucide="arrow-left"></i> <span>Volver</span>
+                            </button>
+                            <button type="submit" id="submit-btn" class="btn btn-primary btn-xl">
+                                <span>Enviar Cuestionario</span>
+                                <i data-lucide="send" class="icon-right"></i>
+                            </button>
+                        </div>
+                    </div> <!-- Fin Section 3 -->
+                </form>
+            </section>
+        </main>
+
+        <!-- Modales -->
+        <div id="modal-success" class="modal-overlay hidden">
+            <div class="modal-content">
+                <i data-lucide="party-popper" class="icon-xl"></i>
+                <h2>¡Cuestionario enviado!</h2>
+                <p>El cuestionario ha sido enviado correctamente. ¡Muchas gracias por tu participación!</p>
+                <button class="btn btn-secondary" onclick="resetSurvey()">Enviar otra respuesta </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+
+</html>
