@@ -327,10 +327,6 @@ window.saveResponse = function (key, value) {
     }
 };
 
-// 6. Envío Robusto a Supabase + Google Sheets
-// Flag global para prevenir envíos duplicados
-let isSubmitting = false;
-
 // Función para reiniciar el cuestionario sin recargar la página
 window.resetSurvey = function () {
     // 1. Ocultar modal de éxito
@@ -481,14 +477,6 @@ if (mainForm) {
         btn.innerHTML = '<span>Guardando...</span>';
         console.log(`🔒 [${transactionId}] Botón desactivado y flag isSubmitting = true`);
 
-        // Construir payload compatible con el nuevo script (Mapeo por nombre)
-        const payload = {
-            "sheetName": "CUESTIONARIO FINAL",
-            "Fecha": new Date().toLocaleString(),
-            "Apellidos": userSurname
-        };
-
-
         // 3. Items de valoración (1-55 y duplicadas) con nombres originales
         QUESTIONS.forEach((q, index) => {
             const valAfter = responses[`past_${q.id}`];
@@ -517,62 +505,6 @@ if (mainForm) {
             } catch (supabaseError) {
                 console.warn(`⚠️ [${transactionId}] Supabase no disponible, continuando con Google Sheets:`, supabaseError.message);
                 // Si Supabase falla, continuamos con Google Sheets
-            }
-
-            // PASO 2: Intentar sincronizar registros pendientes
-            // PASO 3: Enviar a Google Sheets (con el link exacto del index.html)
-            const webhook = typeof WEBHOOK_URL !== 'undefined' ? WEBHOOK_URL : '';
-
-            // NOTA: NO sincronizamos registros pendientes aquí para evitar duplicados.
-            // Los registros pendientes se sincronizarán automáticamente en el próximo envío.
-
-            // PASO 3: Enviar a Google Sheets (con reintentos)
-            if (webhook) {
-                btn.innerHTML = '<span>Enviando...</span>';
-                console.log(`📤 [${transactionId}] Iniciando envío a Google Sheets...`);
-
-                const maxRetries = 3;
-                let retryCount = 0;
-                let sheetSuccess = false;
-
-                const fetchOptions = {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    body: JSON.stringify(payload)
-                };
-
-                while (retryCount < maxRetries && !sheetSuccess) {
-                    try {
-                        console.log(`📤 [${transactionId}] Intento ${retryCount + 1}/${maxRetries} a Google Sheets (Sincronizado)...`);
-
-                        await fetch(webhook, fetchOptions);
-                        
-                        sheetSuccess = true; 
-                        console.log(`✅ [${transactionId}] Petición enviada a Google Sheets`);
-
-                        // Marcar como sincronizado en Supabase SOLO si se guardó exitosamente
-                        if (supabaseSaved && supabaseRecord && supabaseRecord.id) {
-                            await markAsSynced(supabaseRecord.id);
-                            console.log(`✅ [${transactionId}] Registro marcado como sincronizado en Supabase`);
-                        }
-
-                    } catch (sheetError) {
-                        retryCount++;
-                        console.warn(`❌ [${transactionId}] Intento ${retryCount} falló:`, sheetError);
-
-                        if (retryCount < maxRetries) {
-                            const waitTime = Math.pow(2, retryCount) * 1000;
-                            await new Promise(resolve => setTimeout(resolve, waitTime));
-                        }
-                    }
-                }
-
-                if (!sheetSuccess) {
-                    console.error(`⚠️ [${transactionId}] No se pudo enviar a Google Sheets después de varios intentos`);
-                }
-            } else {
-                console.warn(`⚠️ [${transactionId}] No hay WEBHOOK_URL configurado.`);
             }
 
             // PASO 4: Mostrar éxito al usuario
@@ -628,31 +560,6 @@ if (mainForm) {
     });
 }
 
-// Función auxiliar para enviar a Google Sheets
-async function sendToGoogleSheets(webhook, payload) {
-    return fetch(webhook, {
-        method: 'POST',
-        mode: 'no-cors',
-        cache: 'no-cache',
-        body: JSON.stringify(payload)
-    });
-}
-
-// 7. Funciones Admin
-window.toggleAdmin = function () {
-    const panel = document.getElementById('admin-panel');
-    if (panel) {
-        panel.classList.toggle('hidden');
-        renderAdminQuestions();
-        const urlIn = document.getElementById('webhook-url');
-        if (urlIn) {
-            urlIn.value = localStorage.getItem('google_sheet_webhook') ||
-                (typeof WEBHOOK_URL !== 'undefined' ? WEBHOOK_URL : '');
-        }
-    }
-};
-
-window.saveWebhookUrl = (url) => localStorage.setItem('google_sheet_webhook', url);
 
 function renderAdminQuestions() {
     const list = document.getElementById('admin-questions-list');
